@@ -1,0 +1,147 @@
+buildscript {
+    repositories {
+        maven { url = 'https://files.minecraftforge.net/maven' }
+        jcenter()
+        mavenCentral()
+    }
+    dependencies {
+        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '3.+', changing: true
+    }
+}
+apply plugin: 'net.minecraftforge.gradle'
+// Отредактируйте только под этой строкой, приведенный выше код добавляет и разрешает настройку Forge.
+apply plugin: 'eclipse'
+apply plugin: 'maven-publish'
+
+version = '1.0-RELEASES'
+group = 'com.example.examplemod.examplemod' // http://maven.apache.org/guides/mini/guide-naming-conventions.html
+archivesBaseName = 'ExampleMod'
+
+sourceCompatibility = targetCompatibility = compileJava.sourceCompatibility = compileJava.targetCompatibility = '1.8' // Need this here so eclipse task generates correctly.
+
+minecraft {
+    // Сопоставления можно изменить в любое время, и они должны быть в следующем формате.
+    // snapshot_YYYYMMDD   Бейджик на время билда (когда был собран экземпляр мода)
+    // stable_#            Бейджик (stable и др)
+    // Используйте сопоставления не по умолчанию на свой страх и риск. они могут не всегда работать.
+    // Просто повторно запустите задачу установки после изменения сопоставлений, чтобы обновить рабочее пространство.
+    mappings channel: 'snapshot', version: '20200514-1.15.1'
+    // makeObfSourceJar = false // jar с именами Srg создается по умолчанию. раскомментируйте это, чтобы отключить.
+
+    // accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg')
+
+    // Конфигурации запуска по умолчанию.
+    // Их можно настроить, удалить или продублировать по мере необходимости.
+    runs {
+        client {
+            workingDirectory project.file('run')
+
+            // Рекомендуемые данные логов для среды userdev
+            property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
+
+            // Рекомендуемый уровень ведения логов для консоли
+            property 'forge.logging.console.level', 'debug'
+
+            mods {
+                examplemod {
+                    source sourceSets.main
+                }
+            }
+        }
+
+        server {
+            workingDirectory project.file('run')
+
+            // Рекомендуемые данные логов для среды userdev
+            property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
+
+            // Рекомендуемый уровень ведения логов для консоли
+            property 'forge.logging.console.level', 'debug'
+
+            mods {
+                examplemod {
+                    source sourceSets.main
+                }
+            }
+        }
+
+        data {
+            workingDirectory project.file('run')
+
+            // Рекомендуемые данные логов для среды userdev
+            property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
+
+            // Рекомендуемый уровень ведения логов для консоли
+            property 'forge.logging.console.level', 'debug'
+
+            args '--mod', 'examplemod', '--all', '--output', file('src/generated/resources/')
+
+            mods {
+                examplemod {
+                    source sourceSets.main
+                }
+            }
+        }
+    }
+}
+
+dependencies {
+    // Specify the version of Minecraft to use, If this is any group other then 'net.minecraft' it is assumed
+    // that the dep is a ForgeGradle 'patcher' dependency. And it's patches will be applied.
+    // The userdev artifact is a special name and will get all sorts of transformations applied to it.
+    minecraft 'net.minecraftforge:forge:1.15.2-31.2.0'
+
+// Вы можете поместить jar-файлы, от которых вы зависите, в ./libs или можете определить их так ..
+    // compile "some.group:artifact:version:classifier"
+    // compile "some.group:artifact:version"
+
+    // Реальные примеры
+    // compile 'com.mod-buildcraft: buildcraft: 6.0.8: dev' // добавляет buildcraft в dev env
+    // compile 'com.googlecode.efficient-java-matrix-library: ejml: 0.24' // добавляет ejml в среду разработки
+
+    // provided конфигурация предназначена для необязательных зависимостей, которые существуют во время компиляции, но могут отсутствовать во время выполнения.
+    // provided 'com.mod-buildcraft: buildcraft: 6.0.8: dev'
+
+    // Эти зависимости будут переназначены на ваши текущие сопоставления MCP
+    // deobf 'com.mod-buildcraft: buildcraft: 6.0.8: dev'
+
+    // Для получения дополнительной информации...
+    // http://www.gradle.org/docs/current/userguide/artifact_dependencies_tutorial.html
+    // http://www.gradle.org/docs/current/userguide/dependency_management.html
+
+}
+
+// Пример того, как получить свойства в манифесте для чтения средой выполнения ..
+jar {
+    manifest {
+        attributes([
+            "Specification-Title": "examplemod",
+            "Specification-Vendor": "examplemodsareus",
+            "Specification-Version": "1", // We are version 1 of ourselves
+            "Implementation-Title": project.name,
+            "Implementation-Version": "${version}",
+            "Implementation-Vendor" :"examplemodsareus",
+            "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
+        ])
+    }
+}
+
+// Пример конфигурации для разрешения публикации с использованием задачи maven-publish
+// Это предпочтительный метод для повторной обфускации вашего jar-файла
+
+jar.finalizedBy('reobfJar')
+// Однако, если вы находитесь в сборке с несколькими проектами, время разработки требует необфускированных файлов jar, поэтому вы можете отложить обфускацию до публикации, выполнив
+//publish.dependsOn('reobfJar ')
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            artifact jar
+        }
+    }
+    repositories {
+        maven {
+            url "file:///${project.projectDir}/mcmodsrepo"
+        }
+    }
+}
