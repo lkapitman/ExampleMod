@@ -18,11 +18,16 @@ import org.apache.logging.log4j.Logger;
 
 import java.util.stream.Collectors;
 
+import com.example.examplemod.items.registers.TutItems;
+
 // Как раз-таки наш modid
 @Mod("examplemod")
 public class ExampleMod {
     // инициализация логгера.
     private static final Logger LOGGER = LogManager.getLogger();
+
+    // modID constant
+    public static final String MOD_ID = "examplemod";
 
     public ExampleMod() {
         // Register the setup method for modloading
@@ -36,6 +41,9 @@ public class ExampleMod {
 
         // Register ourselves for server and other game events we are interested in
         MinecraftForge.EVENT_BUS.register(this);
+
+        //custom
+        TutItems.register();
     }
 
     private void setup(final FMLCommonSetupEvent event) {
